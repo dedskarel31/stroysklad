@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { createOperation, fetchMaterials } from '../api.js';
 
+const INSUFFICIENT_STOCK_MESSAGE = 'Недостаточно материала на складе';
+
 export default function OperationPage() {
   const [materials, setMaterials] = useState([]);
   const [form, setForm] = useState({
@@ -9,6 +11,7 @@ export default function OperationPage() {
     quantity: '',
   });
   const [error, setError] = useState('');
+  const [insufficientError, setInsufficientError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -31,6 +34,7 @@ export default function OperationPage() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError('');
+    setInsufficientError('');
     setSuccess('');
     setLoading(true);
     try {
@@ -42,7 +46,11 @@ export default function OperationPage() {
       setSuccess('Операция успешно добавлена');
       setForm((prev) => ({ ...prev, quantity: '' }));
     } catch (e) {
-      setError(e.message);
+      if (e.message?.includes(INSUFFICIENT_STOCK_MESSAGE)) {
+        setInsufficientError(INSUFFICIENT_STOCK_MESSAGE);
+      } else {
+        setError(e.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -52,6 +60,12 @@ export default function OperationPage() {
     <div className="container">
       <h2 className="h4 mb-3">Новая операция</h2>
 
+      {insufficientError && (
+        <div className="alert alert-danger border-2 shadow-sm" role="alert">
+          <div className="fw-semibold mb-1">Операция отклонена</div>
+          <div>{insufficientError}</div>
+        </div>
+      )}
       {error && <div className="alert alert-danger">{error}</div>}
       {success && <div className="alert alert-success">{success}</div>}
 

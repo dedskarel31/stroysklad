@@ -58,7 +58,11 @@ export default function Dashboard() {
                     <td>{row.unit}</td>
                     <td>{row.min_quantity}</td>
                     <td>{row.quantity}</td>
-                    <td>{low ? 'Внимание' : 'Норма'}</td>
+                    <td>
+                      <span className={`badge ${low ? 'text-bg-danger' : 'text-bg-success'}`}>
+                        {low ? 'Ниже минимума' : 'Норма'}
+                      </span>
+                    </td>
                   </tr>
                 );
               })}
