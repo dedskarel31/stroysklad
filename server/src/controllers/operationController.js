@@ -3,7 +3,7 @@
  */
 import { createOperation } from '../services/operationService.js';
 
-export function createOperationHttp(req, res) {
+export async function createOperationHttp(req, res) {
   const { type, material_id: materialIdRaw, quantity: qtyRaw, date } = req.body ?? {};
 
   if (type !== 'income' && type !== 'expense') {
@@ -22,7 +22,7 @@ export function createOperationHttp(req, res) {
   }
 
   try {
-    const result = createOperation({
+    const result = await createOperation({
       type,
       material_id,
       quantity,

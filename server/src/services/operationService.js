@@ -1,7 +1,7 @@
 /**
  * Создание операции прихода/расхода с обновлением остатков в одной транзакции.
  */
-import { getDb } from '../db/database.js';
+import { pool } from '../db/database.js';
 import {
   canExpense,
   getCurrentStockQuantity,
@@ -12,68 +12,73 @@ import {
  * @param {{ type: 'income' | 'expense', material_id: number, quantity: number, date?: string | null }} payload
  * @returns {{ ok: true, id: number } | { ok: false, status: number, message: string }}
  */
-export function createOperation(payload) {
+export async function createOperation(payload) {
   const { type, material_id, quantity, date } = payload;
-  const db = getDb();
+  const client = await pool.connect();
 
-  const material = db.prepare('SELECT id FROM materials WHERE id = ?').get(material_id);
-  if (!material) {
-    return { ok: false, status: 404, message: 'Материал не найден' };
-  }
-
-  if (type === 'expense' && !canExpense(db, material_id, quantity)) {
-    return { ok: false, status: 400, message: INSUFFICIENT_STOCK_MESSAGE };
-  }
-
-  db.exec('BEGIN IMMEDIATE');
   try {
-    // Повторная проверка под блокировкой транзакции (на случай гонок)
-    if (type === 'expense' && !canExpense(db, material_id, quantity)) {
-      db.exec('ROLLBACK');
+    await client.query('BEGIN');
+
+    const { rows: materialRows } = await client.query('SELECT id FROM materials WHERE id = $1', [material_id]);
+    if (materialRows.length === 0) {
+      await client.query('ROLLBACK');
+      return { ok: false, status: 404, message: 'Материал не найден' };
+    }
+
+    // Критичная проверка расхода выполняется внутри транзакции.
+    if (type === 'expense' && !(await canExpense(client, material_id, quantity))) {
+      await client.query('ROLLBACK');
       return { ok: false, status: 400, message: INSUFFICIENT_STOCK_MESSAGE };
     }
 
     const opDate = date && String(date).trim() ? String(date).trim() : null;
-    const insertOp = db.prepare(`
-      INSERT INTO operations (type, material_id, quantity, date)
-      VALUES (?, ?, ?, COALESCE(?, datetime('now')))
-    `);
-    const opResult = insertOp.run(type, material_id, quantity, opDate);
-    const newId = Number(opResult.lastInsertRowid);
+    const { rows: operationRows } = await client.query(
+      `INSERT INTO operations (type, material_id, quantity, date)
+       VALUES ($1, $2, $3, COALESCE($4, NOW()))
+       RETURNING id`,
+      [type, material_id, quantity, opDate],
+    );
+    const newId = Number(operationRows[0].id);
 
     if (type === 'income') {
-      upsertStockAfterIncome(db, material_id, quantity);
+      await upsertStockAfterIncome(client, material_id, quantity);
     } else {
-      applyExpenseToStock(db, material_id, quantity);
+      await applyExpenseToStock(client, material_id, quantity);
     }
 
-    db.exec('COMMIT');
+    await client.query('COMMIT');
     return { ok: true, id: newId };
   } catch (e) {
     try {
-      db.exec('ROLLBACK');
+      await client.query('ROLLBACK');
     } catch {
       /* уже откатили или соединение в неверном состоянии */
     }
     throw e;
+  } finally {
+    client.release();
   }
 }
 
 /**
  * Увеличивает остаток при приходе; при отсутствии строки остатка — вставляет новую.
  */
-function upsertStockAfterIncome(db, materialId, delta) {
-  const row = db.prepare('SELECT id, quantity FROM stock_balances WHERE material_id = ?').get(materialId);
+async function upsertStockAfterIncome(client, materialId, delta) {
+  const { rows } = await client.query('SELECT id, quantity FROM stock_balances WHERE material_id = $1', [materialId]);
+  const row = rows[0];
   if (row) {
     const next = Number(row.quantity) + Number(delta);
-    db.prepare(`UPDATE stock_balances SET quantity = ?, last_updated = datetime('now') WHERE material_id = ?`).run(
-      next,
-      materialId,
+    await client.query(
+      `UPDATE stock_balances
+       SET quantity = $1, last_updated = NOW()
+       WHERE material_id = $2`,
+      [next, materialId],
     );
   } else {
-    db.prepare(`INSERT INTO stock_balances (material_id, quantity, last_updated) VALUES (?, ?, datetime('now'))`).run(
-      materialId,
-      delta,
+    await client.query(
+      `INSERT INTO stock_balances (material_id, quantity, last_updated)
+       VALUES ($1, $2, NOW())`,
+      [materialId, delta],
     );
   }
 }
@@ -81,11 +86,13 @@ function upsertStockAfterIncome(db, materialId, delta) {
 /**
  * Уменьшает остаток при расходе (строка остатка должна существовать после проверки canExpense).
  */
-function applyExpenseToStock(db, materialId, delta) {
-  const current = getCurrentStockQuantity(db, materialId);
+async function applyExpenseToStock(client, materialId, delta) {
+  const current = await getCurrentStockQuantity(client, materialId);
   const next = current - Number(delta);
-  db.prepare(`UPDATE stock_balances SET quantity = ?, last_updated = datetime('now') WHERE material_id = ?`).run(
-    next,
-    materialId,
+  await client.query(
+    `UPDATE stock_balances
+     SET quantity = $1, last_updated = NOW()
+     WHERE material_id = $2`,
+    [next, materialId],
   );
 }

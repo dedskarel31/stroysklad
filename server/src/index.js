@@ -1,7 +1,12 @@
 import cors from 'cors';
 import express from 'express';
+import { login } from './controllers/authController.js';
+import { listMaterials } from './controllers/materialController.js';
+import { createOperationHttp } from './controllers/operationController.js';
+import { listStock } from './controllers/stockController.js';
 import { ALLOWED_ORIGINS, PORT } from './config.js';
 import { initDatabase } from './db/database.js';
+import { requireAuth } from './middleware/authJwt.js';
 
 const app = express();
 const HOST = '0.0.0.0';
@@ -23,6 +28,11 @@ app.use(express.json());
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true, message: 'СтройСклад API работает' });
 });
+
+app.post('/api/login', login);
+app.get('/api/materials', requireAuth, listMaterials);
+app.get('/api/stock', requireAuth, listStock);
+app.post('/api/operations', requireAuth, createOperationHttp);
 
 app.get('/', (_req, res) => {
   res.status(200).send('StroySklad backend is running');

@@ -8,15 +8,16 @@ export const INSUFFICIENT_STOCK_MESSAGE = 'Недостаточно матери
 /**
  * Текущий остаток по материалу (если строки нет — 0).
  */
-export function getCurrentStockQuantity(db, materialId) {
-  const row = db.prepare('SELECT quantity FROM stock_balances WHERE material_id = ?').get(materialId);
+export async function getCurrentStockQuantity(client, materialId) {
+  const { rows } = await client.query('SELECT quantity FROM stock_balances WHERE material_id = $1', [materialId]);
+  const row = rows[0];
   return row ? Number(row.quantity) : 0;
 }
 
 /**
  * Можно ли списать quantity единиц (расход допустим только если остаток ≥ quantity).
  */
-export function canExpense(db, materialId, quantity) {
-  const current = getCurrentStockQuantity(db, materialId);
+export async function canExpense(client, materialId, quantity) {
+  const current = await getCurrentStockQuantity(client, materialId);
   return quantity <= current;
 }

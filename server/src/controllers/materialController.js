@@ -1,10 +1,18 @@
 /**
  * Справочник материалов (для форм выбора и отчётов).
  */
-import { getDb } from '../db/database.js';
+import { pool } from '../db/database.js';
 
-export function listMaterials(_req, res) {
-  const db = getDb();
-  const rows = db.prepare('SELECT id, name, article, unit, min_quantity FROM materials ORDER BY name').all();
-  res.json(rows);
+export async function listMaterials(_req, res) {
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, name, article, unit, min_quantity
+       FROM materials
+       ORDER BY name`,
+    );
+    res.json(rows);
+  } catch (error) {
+    console.error('[materials]', error);
+    res.status(500).json({ message: 'Не удалось получить список материалов' });
+  }
 }
