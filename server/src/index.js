@@ -4,6 +4,7 @@ import { ALLOWED_ORIGINS, PORT } from './config.js';
 import { initDatabase } from './db/database.js';
 
 const app = express();
+const HOST = '0.0.0.0';
 
 app.use(
   cors({
@@ -23,12 +24,16 @@ app.get('/api/health', (_req, res) => {
   res.json({ ok: true, message: 'СтройСклад API работает' });
 });
 
+app.get('/', (_req, res) => {
+  res.status(200).send('StroySklad backend is running');
+});
+
 async function main() {
   await initDatabase();
   console.log('[DB] PostgreSQL подключена.');
 
-  app.listen(PORT, () => {
-    console.log(`[HTTP] Сервер слушает http://localhost:${PORT}`);
+  app.listen(PORT, HOST, () => {
+    console.log(`[HTTP] Сервер слушает на ${HOST}:${PORT}`);
   });
 }
 
