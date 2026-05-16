@@ -40,7 +40,11 @@ router.post('/login', async (req, res) => {
     });
   } catch (e) {
     console.error('[auth/login]', e);
-    return res.status(500).json({ error: 'Ошибка авторизации' });
+    const hint =
+      e.code === '42703'
+        ? 'База данных не инициализирована. Перезапустите сервер или выполните: npm run db:init'
+        : 'Ошибка авторизации';
+    return res.status(500).json({ error: hint });
   }
 });
 

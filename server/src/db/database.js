@@ -1,5 +1,6 @@
 import { Pool } from 'pg';
 import { DATABASE_URL } from '../config.js';
+import { ensureSchema } from './ensureSchema.js';
 
 export const pool = new Pool({
   connectionString: DATABASE_URL,
@@ -10,4 +11,5 @@ export const pool = new Pool({
 
 export async function initDatabase() {
   await pool.query('SELECT 1');
+  await ensureSchema();
 }
