@@ -8,8 +8,7 @@
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
     "db:init": "node src/db/initDb.js",
-    "db:reset-admin": "node src/db/resetAdmin.js",
-    "db:promote": "node src/db/promoteAdmin.js"
+    "db:seed": "node seed.js"
   },
   "engines": {
     "node": ">=22.5.0"

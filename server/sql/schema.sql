@@ -1,41 +1,64 @@
+-- Схема БД «СтройСклад» — 4 таблицы по дипломному заданию
+
 BEGIN;
 
-CREATE TABLE IF NOT EXISTS employees (
-  id BIGSERIAL PRIMARY KEY,
-  login VARCHAR(100) NOT NULL UNIQUE,
+-- Удаление устаревших таблиц предыдущей версии системы
+DROP TABLE IF EXISTS operations CASCADE;
+DROP TABLE IF EXISTS stock_balances CASCADE;
+DROP TABLE IF EXISTS transactions CASCADE;
+DROP TABLE IF EXISTS stock CASCADE;
+DROP TABLE IF EXISTS system_settings CASCADE;
+DROP TABLE IF EXISTS materials CASCADE;
+DROP TABLE IF EXISTS employees CASCADE;
+
+CREATE TABLE employees (
+  id SERIAL PRIMARY KEY,
+  username VARCHAR(100) UNIQUE NOT NULL,
   password_hash TEXT NOT NULL,
-  role VARCHAR(20) NOT NULL CHECK (role IN ('admin', 'storekeeper'))
+  role VARCHAR(20) NOT NULL CHECK (role IN ('admin', 'user')),
+  full_name VARCHAR(255),
+  created_at TIMESTAMP DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS materials (
-  id BIGSERIAL PRIMARY KEY,
-  name VARCHAR(255) NOT NULL,
-  article VARCHAR(100) NOT NULL UNIQUE,
+CREATE TABLE materials (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) UNIQUE NOT NULL,
   unit VARCHAR(50) NOT NULL,
-  min_quantity NUMERIC(14, 3) NOT NULL DEFAULT 0
+  min_quantity NUMERIC(10, 2) NOT NULL DEFAULT 0,
+  created_at TIMESTAMP DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS stock_balances (
-  id BIGSERIAL PRIMARY KEY,
-  material_id BIGINT NOT NULL REFERENCES materials(id) ON DELETE CASCADE,
-  quantity NUMERIC(14, 3) NOT NULL DEFAULT 0,
-  last_updated TIMESTAMP NOT NULL DEFAULT NOW()
+CREATE TABLE stock (
+  material_id INTEGER PRIMARY KEY REFERENCES materials(id) ON DELETE CASCADE,
+  quantity NUMERIC(10, 2) NOT NULL DEFAULT 0 CHECK (quantity >= 0)
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS ux_stock_balances_material_id
-  ON stock_balances(material_id);
-
-CREATE TABLE IF NOT EXISTS operations (
-  id BIGSERIAL PRIMARY KEY,
-  type VARCHAR(20) NOT NULL CHECK (type IN ('income', 'expense')),
-  material_id BIGINT NOT NULL REFERENCES materials(id) ON DELETE RESTRICT,
-  quantity NUMERIC(14, 3) NOT NULL CHECK (quantity > 0),
-  date TIMESTAMP NOT NULL DEFAULT NOW()
+CREATE TABLE transactions (
+  id SERIAL PRIMARY KEY,
+  material_id INTEGER NOT NULL REFERENCES materials(id),
+  employee_id INTEGER NOT NULL REFERENCES employees(id),
+  type VARCHAR(10) NOT NULL CHECK (type IN ('income', 'expense')),
+  quantity NUMERIC(10, 2) NOT NULL CHECK (quantity > 0),
+  comment TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS system_settings (
-  key VARCHAR(100) PRIMARY KEY,
-  value TEXT NOT NULL
-);
+CREATE INDEX idx_transactions_material_id ON transactions(material_id);
+CREATE INDEX idx_transactions_created_at ON transactions(created_at);
+
+CREATE OR REPLACE FUNCTION create_stock_for_material()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO stock (material_id, quantity) VALUES (NEW.id, 0)
+  ON CONFLICT (material_id) DO NOTHING;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_materials_create_stock ON materials;
+CREATE TRIGGER trg_materials_create_stock
+  AFTER INSERT ON materials
+  FOR EACH ROW
+  EXECUTE FUNCTION create_stock_for_material();
 
 COMMIT;

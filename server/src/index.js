@@ -1,29 +1,23 @@
 import cors from 'cors';
 import express from 'express';
-import { login, me, register } from './controllers/authController.js';
-import { listMaterials } from './controllers/materialController.js';
-import { createOperationHttp, listOperations } from './controllers/operationController.js';
-import { getPublicSettings, getSettings, updateSettings } from './controllers/settingsController.js';
-import { listStock } from './controllers/stockController.js';
-import { listUsers, updateUserRole } from './controllers/userController.js';
 import { ALLOWED_ORIGINS, PORT } from './config.js';
 import { initDatabase } from './db/database.js';
-import { requireAuth } from './middleware/authJwt.js';
-import { requireRole } from './middleware/requireRole.js';
+import authRoutes from './routes/auth.js';
+import materialsRoutes from './routes/materials.js';
+import stockRoutes from './routes/stock.js';
+import transactionsRoutes from './routes/transactions.js';
+import employeesRoutes from './routes/employees.js';
 
 const app = express();
 const HOST = '0.0.0.0';
 
-const storekeeper = requireRole('storekeeper');
-const admin = requireRole('admin');
-
 app.use(
   cors({
-    origin(origin, callback) {
+    origin: ALLOWED_ORIGINS === true ? true : (origin, callback) => {
       if (!origin || ALLOWED_ORIGINS.includes(origin)) {
         return callback(null, true);
       }
-      return callback(new Error(`CORS: origin ${origin} не разрешен`));
+      return callback(null, false);
     },
     credentials: true,
   }),
@@ -31,29 +25,17 @@ app.use(
 app.use(express.json());
 
 app.get('/api/health', (_req, res) => {
-  res.json({ ok: true, message: 'API системы учёта материалов работает' });
+  res.json({ ok: true, message: 'СтройСклад API работает' });
 });
 
-app.get('/api/settings/public', getPublicSettings);
-
-app.post('/api/login', login);
-app.post('/api/register', register);
-app.get('/api/me', requireAuth, me);
-
-// Кладовщик: остатки, материалы, операции, отчёты
-app.get('/api/stock', requireAuth, storekeeper, listStock);
-app.get('/api/materials', requireAuth, storekeeper, listMaterials);
-app.get('/api/operations', requireAuth, storekeeper, listOperations);
-app.post('/api/operations', requireAuth, storekeeper, createOperationHttp);
-
-// Администратор: пользователи и настройки системы
-app.get('/api/admin/users', requireAuth, admin, listUsers);
-app.patch('/api/admin/users/:id/role', requireAuth, admin, updateUserRole);
-app.get('/api/admin/settings', requireAuth, admin, getSettings);
-app.patch('/api/admin/settings', requireAuth, admin, updateSettings);
+app.use('/api/auth', authRoutes);
+app.use('/api/materials', materialsRoutes);
+app.use('/api/stock', stockRoutes);
+app.use('/api/transactions', transactionsRoutes);
+app.use('/api/employees', employeesRoutes);
 
 app.get('/', (_req, res) => {
-  res.status(200).send('Warehouse accounting API is running');
+  res.status(200).send('СтройСклад — API складского учёта (ООО «Девелум ПГС»)');
 });
 
 async function main() {
@@ -61,7 +43,7 @@ async function main() {
   console.log('[DB] PostgreSQL подключена.');
 
   app.listen(PORT, HOST, () => {
-    console.log(`[HTTP] Сервер слушает на ${HOST}:${PORT}`);
+    console.log(`[HTTP] Сервер: ${HOST}:${PORT}`);
   });
 }
 

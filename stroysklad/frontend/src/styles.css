@@ -1,0 +1,43 @@
+/* Дополнительные стили поверх Bootstrap 5 */
+
+body {
+  background-color: #f8f9fa;
+}
+
+.app-brand {
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+}
+
+.deficit-row {
+  background-color: rgba(220, 53, 69, 0.12) !important;
+}
+
+.deficit-row:hover {
+  background-color: rgba(220, 53, 69, 0.22) !important;
+}
+
+.normal-row {
+  background-color: rgba(25, 135, 84, 0.06) !important;
+}
+
+.dashboard-counter {
+  font-size: 1.1rem;
+}
+
+.page-container {
+  padding-top: 80px;
+  padding-bottom: 40px;
+}

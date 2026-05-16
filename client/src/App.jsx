@@ -1,125 +1,67 @@
-import { useEffect, useState } from 'react';
-import { Navigate, Route, Routes, useNavigate } from 'react-router-dom';
-import { clearToken, fetchMe, getToken, getUser } from './api.js';
-import RequireRole from './components/RequireRole.jsx';
-import Navbar from './components/Navbar.jsx';
-import AuthPage from './pages/AuthPage.jsx';
-import AdminSettingsPage from './pages/AdminSettingsPage.jsx';
-import AdminUsersPage from './pages/AdminUsersPage.jsx';
+import { Navigate, Route, Routes } from 'react-router-dom';
+import PrivateRoute from './components/PrivateRoute.jsx';
+import AppLayout from './components/AppLayout.jsx';
+import Login from './pages/Login.jsx';
 import Dashboard from './pages/Dashboard.jsx';
-import OperationPage from './pages/OperationPage.jsx';
-import ReportsPage from './pages/ReportsPage.jsx';
-import { homePathForRole, ROLES } from './utils/roles.js';
+import Operations from './pages/Operations.jsx';
+import Journal from './pages/Journal.jsx';
+import AdminMaterials from './pages/admin/Materials.jsx';
+import AdminEmployees from './pages/admin/Employees.jsx';
 
-function HomeRedirect() {
-  const user = getUser();
-  return <Navigate to={homePathForRole(user?.role)} replace />;
-}
-
-function ProtectedLayout({ children }) {
-  const [ready, setReady] = useState(false);
-  const navigate = useNavigate();
-  const token = getToken();
-
-  useEffect(() => {
-    if (!token) {
-      setReady(true);
-      return;
-    }
-
-    fetchMe()
-      .catch(() => {
-        clearToken();
-        navigate('/login', { replace: true });
-      })
-      .finally(() => setReady(true));
-  }, [token, navigate]);
-
-  if (!token) {
-    return <Navigate to="/login" replace />;
-  }
-
-  if (!ready) {
-    return (
-      <div className="app-loading">
-        <div className="spinner" role="status" aria-label="03@C7:0" />
-      </div>
-    );
-  }
-
+function ProtectedPage({ children, adminOnly = false }) {
   return (
-    <div className="app-shell">
-      <Navbar />
-      <main className="app-main">{children}</main>
-    </div>
+    <PrivateRoute adminOnly={adminOnly}>
+      <AppLayout>{children}</AppLayout>
+    </PrivateRoute>
   );
 }
 
 export default function App() {
   return (
     <Routes>
-      <Route path="/login" element={<AuthPage />} />
-
+      <Route path="/login" element={<Login />} />
       <Route
-        path="/"
+        path="/dashboard"
         element={
-          <ProtectedLayout>
-            <RequireRole roles={[ROLES.STOREKEEPER]}>
-              <Dashboard />
-            </RequireRole>
-          </ProtectedLayout>
+          <ProtectedPage>
+            <Dashboard />
+          </ProtectedPage>
         }
       />
       <Route
-        path="/operation"
+        path="/operations"
         element={
-          <ProtectedLayout>
-            <RequireRole roles={[ROLES.STOREKEEPER]}>
-              <OperationPage />
-            </RequireRole>
-          </ProtectedLayout>
+          <ProtectedPage>
+            <Operations />
+          </ProtectedPage>
         }
       />
       <Route
-        path="/reports"
+        path="/journal"
         element={
-          <ProtectedLayout>
-            <RequireRole roles={[ROLES.STOREKEEPER]}>
-              <ReportsPage />
-            </RequireRole>
-          </ProtectedLayout>
-        }
-      />
-
-      <Route
-        path="/admin/users"
-        element={
-          <ProtectedLayout>
-            <RequireRole roles={[ROLES.ADMIN]}>
-              <AdminUsersPage />
-            </RequireRole>
-          </ProtectedLayout>
+          <ProtectedPage>
+            <Journal />
+          </ProtectedPage>
         }
       />
       <Route
-        path="/admin/settings"
+        path="/admin/materials"
         element={
-          <ProtectedLayout>
-            <RequireRole roles={[ROLES.ADMIN]}>
-              <AdminSettingsPage />
-            </RequireRole>
-          </ProtectedLayout>
+          <ProtectedPage adminOnly>
+            <AdminMaterials />
+          </ProtectedPage>
         }
       />
-
       <Route
-        path="*"
+        path="/admin/employees"
         element={
-          <ProtectedLayout>
-            <HomeRedirect />
-          </ProtectedLayout>
+          <ProtectedPage adminOnly>
+            <AdminEmployees />
+          </ProtectedPage>
         }
       />
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );
 }
