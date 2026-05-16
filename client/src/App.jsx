@@ -1,10 +1,20 @@
 import { useEffect, useState } from 'react';
 import { Navigate, Route, Routes, useNavigate } from 'react-router-dom';
-import { clearToken, fetchMe, getToken } from './api.js';
+import { clearToken, fetchMe, getToken, getUser } from './api.js';
+import RequireRole from './components/RequireRole.jsx';
 import Navbar from './components/Navbar.jsx';
 import AuthPage from './pages/AuthPage.jsx';
+import AdminSettingsPage from './pages/AdminSettingsPage.jsx';
+import AdminUsersPage from './pages/AdminUsersPage.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import OperationPage from './pages/OperationPage.jsx';
+import ReportsPage from './pages/ReportsPage.jsx';
+import { homePathForRole, ROLES } from './utils/roles.js';
+
+function HomeRedirect() {
+  const user = getUser();
+  return <Navigate to={homePathForRole(user?.role)} replace />;
+}
 
 function ProtectedLayout({ children }) {
   const [ready, setReady] = useState(false);
@@ -32,7 +42,7 @@ function ProtectedLayout({ children }) {
   if (!ready) {
     return (
       <div className="app-loading">
-        <div className="spinner" role="status" aria-label="Загрузка" />
+        <div className="spinner" role="status" aria-label="03@C7:0" />
       </div>
     );
   }
@@ -49,11 +59,14 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<AuthPage />} />
+
       <Route
         path="/"
         element={
           <ProtectedLayout>
-            <Dashboard />
+            <RequireRole roles={[ROLES.STOREKEEPER]}>
+              <Dashboard />
+            </RequireRole>
           </ProtectedLayout>
         }
       />
@@ -61,11 +74,52 @@ export default function App() {
         path="/operation"
         element={
           <ProtectedLayout>
-            <OperationPage />
+            <RequireRole roles={[ROLES.STOREKEEPER]}>
+              <OperationPage />
+            </RequireRole>
           </ProtectedLayout>
         }
       />
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route
+        path="/reports"
+        element={
+          <ProtectedLayout>
+            <RequireRole roles={[ROLES.STOREKEEPER]}>
+              <ReportsPage />
+            </RequireRole>
+          </ProtectedLayout>
+        }
+      />
+
+      <Route
+        path="/admin/users"
+        element={
+          <ProtectedLayout>
+            <RequireRole roles={[ROLES.ADMIN]}>
+              <AdminUsersPage />
+            </RequireRole>
+          </ProtectedLayout>
+        }
+      />
+      <Route
+        path="/admin/settings"
+        element={
+          <ProtectedLayout>
+            <RequireRole roles={[ROLES.ADMIN]}>
+              <AdminSettingsPage />
+            </RequireRole>
+          </ProtectedLayout>
+        }
+      />
+
+      <Route
+        path="*"
+        element={
+          <ProtectedLayout>
+            <HomeRedirect />
+          </ProtectedLayout>
+        }
+      />
     </Routes>
   );
 }

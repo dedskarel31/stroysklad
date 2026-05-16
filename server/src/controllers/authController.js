@@ -97,6 +97,14 @@ export async function register(req, res) {
   }
 
   try {
+    const { rows: settingRows } = await pool.query(
+      `SELECT value FROM system_settings WHERE key = 'allow_registration'`,
+    );
+    const allowReg = (settingRows[0]?.value ?? 'true') === 'true';
+    if (!allowReg) {
+      return res.status(403).json({ message: 'Регистрация отключена администратором' });
+    }
+
     const passwordHash = await bcrypt.hash(passwordCheck.value, BCRYPT_ROUNDS);
     const { rows } = await pool.query(
       `INSERT INTO employees (login, password_hash, role)

@@ -60,8 +60,8 @@ export default function OperationPage() {
     <>
       <header className="page-header">
         <div>
-          <h1 className="page-header__title">Новая операция</h1>
-          <p className="page-header__subtitle">Приход или расход материалов на складе</p>
+          <h1 className="page-header__title">Операции со складом</h1>
+          <p className="page-header__subtitle">Поступление материалов и выдача по заявке</p>
         </div>
       </header>
 
@@ -90,8 +90,8 @@ export default function OperationPage() {
                 value={form.type}
                 onChange={handleChange}
               >
-                <option value="income">Приход</option>
-                <option value="expense">Расход</option>
+                <option value="income">Поступление на склад</option>
+                <option value="expense">Выдача со склада (заявка)</option>
               </select>
             </div>
 

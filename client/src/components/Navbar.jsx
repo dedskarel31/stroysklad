@@ -1,16 +1,13 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { APP_LOGO, APP_TITLE } from '../constants.js';
 import { clearToken, getUser } from '../api.js';
-
-const ROLE_LABELS = {
-  admin: 'Администратор',
-  storekeeper: 'Кладовщик',
-};
+import { isAdmin, ROLE_LABELS } from '../utils/roles.js';
 
 export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const user = getUser();
+  const admin = isAdmin(user);
 
   const handleLogout = () => {
     clearToken();
@@ -23,7 +20,7 @@ export default function Navbar() {
   return (
     <header className="app-nav">
       <div className="app-nav__inner">
-        <Link to="/" className="app-nav__brand">
+        <Link to={admin ? '/admin/users' : '/'} className="app-nav__brand">
           <span className="app-nav__logo" aria-hidden="true">
             {APP_LOGO}
           </span>
@@ -31,12 +28,28 @@ export default function Navbar() {
         </Link>
 
         <nav className="app-nav__links" aria-label="Основное меню">
-          <Link className={linkClass('/')} to="/">
-            Остатки
-          </Link>
-          <Link className={linkClass('/operation')} to="/operation">
-            Новая операция
-          </Link>
+          {admin ? (
+            <>
+              <Link className={linkClass('/admin/users')} to="/admin/users">
+                Пользователи
+              </Link>
+              <Link className={linkClass('/admin/settings')} to="/admin/settings">
+                Настройки
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link className={linkClass('/')} to="/">
+                Остатки
+              </Link>
+              <Link className={linkClass('/operation')} to="/operation">
+                Операции
+              </Link>
+              <Link className={linkClass('/reports')} to="/reports">
+                Отчёты
+              </Link>
+            </>
+          )}
         </nav>
 
         <div className="app-nav__right">

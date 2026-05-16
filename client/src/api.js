@@ -83,6 +83,7 @@ function extractApiError(error) {
     return `API не найден (${API_BASE}). Проверьте переменную VITE_API_URL — адрес должен заканчиваться на /api`;
   }
 
+  if (status === 403) return message || 'Недостаточно прав';
   if (status === 409) return 'Такой логин уже занят';
   if (status === 401) return 'Неверный логин или пароль';
   if (status >= 500) return 'Ошибка на сервере. Попробуйте позже';
@@ -149,6 +150,60 @@ export async function createOperation(payload) {
     return response.data;
   } catch (error) {
     throw new Error(extractApiError(error));
+  }
+}
+
+export async function fetchOperations() {
+  try {
+    const response = await api.get('/operations');
+    return response.data;
+  } catch (error) {
+    throw new Error(extractApiError(error));
+  }
+}
+
+export async function fetchAdminUsers() {
+  try {
+    const response = await api.get('/admin/users');
+    return response.data;
+  } catch (error) {
+    throw new Error(extractApiError(error));
+  }
+}
+
+export async function updateUserRole(userId, role) {
+  try {
+    const response = await api.patch(`/admin/users/${userId}/role`, { role });
+    return response.data;
+  } catch (error) {
+    throw new Error(extractApiError(error));
+  }
+}
+
+export async function fetchAdminSettings() {
+  try {
+    const response = await api.get('/admin/settings');
+    return response.data;
+  } catch (error) {
+    throw new Error(extractApiError(error));
+  }
+}
+
+export async function updateAdminSettings(payload) {
+  try {
+    const response = await api.patch('/admin/settings', payload);
+    return response.data;
+  } catch (error) {
+    throw new Error(extractApiError(error));
+  }
+}
+
+export async function fetchPublicSettings() {
+  try {
+    const response = await api.get('/settings/public');
+    return response.data;
+  } catch {
+    return { allow_registration: true };
   }
 }
 

@@ -1,22 +1,24 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { APP_LOGO, APP_TAGLINE } from '../constants.js';
-import { getToken, login, register } from '../api.js';
-
-const ROLE_LABELS = {
-  admin: 'Администратор',
-  storekeeper: 'Кладовщик',
-};
+import { fetchPublicSettings, getToken, getUser, login, register } from '../api.js';
+import { homePathForRole, ROLE_LABELS } from '../utils/roles.js';
 
 export default function AuthPage() {
   const [mode, setMode] = useState('login');
   const [form, setForm] = useState({ login: '', password: '', passwordConfirm: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [allowRegister, setAllowRegister] = useState(true);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    fetchPublicSettings().then((s) => setAllowRegister(Boolean(s.allow_registration)));
+  }, []);
+
   if (getToken()) {
-    return <Navigate to="/" replace />;
+    const user = getUser();
+    return <Navigate to={homePathForRole(user?.role)} replace />;
   }
 
   const handleChange = (event) => {
@@ -45,7 +47,7 @@ export default function AuthPage() {
       } else {
         await register(form.login, form.password);
       }
-      navigate('/');
+      navigate(homePathForRole(getUser()?.role));
     } catch (e) {
       setError(e.message);
     } finally {
@@ -81,15 +83,17 @@ export default function AuthPage() {
           >
             Вход
           </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={mode === 'register'}
-            className={`auth-tabs__btn ${mode === 'register' ? 'auth-tabs__btn--active' : ''}`}
-            onClick={() => switchMode('register')}
-          >
-            Регистрация
-          </button>
+          {allowRegister ? (
+            <button
+              type="button"
+              role="tab"
+              aria-selected={mode === 'register'}
+              className={`auth-tabs__btn ${mode === 'register' ? 'auth-tabs__btn--active' : ''}`}
+              onClick={() => switchMode('register')}
+            >
+              Регистрация
+            </button>
+          ) : null}
         </div>
 
         {mode === 'register' && (

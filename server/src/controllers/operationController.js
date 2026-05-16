@@ -1,6 +1,7 @@
 /**
- * Приход / расход: вызов бизнес-логики с проверкой остатка (расход).
+ * Приход / расход и журнал операций.
  */
+import { pool } from '../db/database.js';
 import { createOperation } from '../services/operationService.js';
 
 export async function createOperationHttp(req, res) {
@@ -37,5 +38,28 @@ export async function createOperationHttp(req, res) {
   } catch (e) {
     console.error('[operation]', e);
     return res.status(500).json({ message: 'Не удалось сохранить операцию' });
+  }
+}
+
+/** Журнал операций — отчёт о движении материалов. */
+export async function listOperations(_req, res) {
+  try {
+    const { rows } = await pool.query(
+      `SELECT o.id,
+              o.type,
+              o.quantity,
+              o.date,
+              m.name AS material_name,
+              m.unit,
+              m.article
+       FROM operations o
+       INNER JOIN materials m ON m.id = o.material_id
+       ORDER BY o.date DESC, o.id DESC
+       LIMIT 500`,
+    );
+    res.json(rows);
+  } catch (e) {
+    console.error('[operations list]', e);
+    res.status(500).json({ message: 'Не удалось получить журнал операций' });
   }
 }
