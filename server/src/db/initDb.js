@@ -2,6 +2,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { pool } from './database.js';
+import { ensureMaterialsCatalog } from './seedMaterials.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,6 +20,7 @@ async function initDb() {
     // Сначала создаем структуру, затем заполняем тестовыми данными.
     await runSqlFile('schema.sql');
     await runSqlFile('seed.sql');
+    await ensureMaterialsCatalog();
     console.log('[DB] Инициализация PostgreSQL завершена.');
   } finally {
     await pool.end();
