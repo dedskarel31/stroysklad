@@ -1,5 +1,6 @@
 import { Pool } from 'pg';
 import { DATABASE_URL } from '../config.js';
+import { ensureDefaultAdmin } from './ensureAdmin.js';
 import { ensureMaterialsCatalog } from './seedMaterials.js';
 import { ensureSystemSettings } from './ensureSettings.js';
 
@@ -17,5 +18,6 @@ export const pool = new Pool({
 export async function initDatabase() {
   await pool.query('SELECT 1');
   await ensureSystemSettings();
+  await ensureDefaultAdmin();
   await ensureMaterialsCatalog();
 }
