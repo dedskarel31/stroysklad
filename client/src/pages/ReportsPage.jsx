@@ -33,10 +33,10 @@ export default function ReportsPage() {
         <div>
           <h1 className="page-header__title">Отчёты о движении материалов</h1>
           <p className="page-header__subtitle">Журнал прихода и выдачи со склада</p>
-        </divion>
+        </div>
       </header>
 
-      {error && <divion className="alert alert--danger">{error}</divion>}
+      {error && <div className="alert alert--danger">{error}</div>}
 
       <section className="panel panel--padded">
         {loading ? (

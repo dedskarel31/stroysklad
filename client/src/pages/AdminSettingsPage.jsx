@@ -35,7 +35,7 @@ export default function AdminSettingsPage() {
     setSaving(true);
     try {
       await updateAdminSettings(form);
-      setSuccess('0AB@>9:8 A>E@0=5=K');
+      setSuccess('Настройки сохранены');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -46,7 +46,7 @@ export default function AdminSettingsPage() {
   if (loading) {
     return (
       <div className="app-loading">
-        <div className="spinner" aria-label="03@C7:0" />
+        <div className="spinner" aria-label="Загрузка" />
       </div>
     );
   }
@@ -55,8 +55,8 @@ export default function AdminSettingsPage() {
     <>
       <header className="page-header">
         <div>
-          <h1 className="page-header__title">0AB@>9:8 A8AB5<K</h1>
-          <p className="page-header__subtitle">0@0<5B@K @01>BK 8=D>@<0F8>==>9 A8AB5<K</p>
+          <h1 className="page-header__title">Настройки системы</h1>
+          <p className="page-header__subtitle">Параметры работы информационной системы</p>
         </div>
       </header>
 
@@ -68,7 +68,7 @@ export default function AdminSettingsPage() {
           <form onSubmit={handleSubmit}>
             <div className="form-field">
               <label className="form-field__label" htmlFor="org-name">
-                0720=85 >@30=870F88
+                Название организации
               </label>
               <input
                 id="org-name"
@@ -91,12 +91,12 @@ export default function AdminSettingsPage() {
                   }
                   style={{ marginRight: '0.5rem' }}
                 />
-                 07@5H8BL @538AB@0F8N =>2KE ?>;L7>20B5;59 (@>;L �;04>2I8:�)
+                Разрешить регистрацию новых пользователей (роль «Кладовщик»)
               </label>
             </div>
 
             <button type="submit" className="btn btn--primary" disabled={saving}>
-              {saving ? '!>E@0=5=85...' : '!>E@0=8BL'}
+              {saving ? 'Сохранение...' : 'Сохранить'}
             </button>
           </form>
         </div>
