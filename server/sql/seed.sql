@@ -4,9 +4,12 @@ BEGIN;
 INSERT INTO employees (login, password_hash, role)
 VALUES (
   'admin',
-  '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',
+  '$2b$10$NRmJdIpJBCPXb83GxbMX8u9CBL0l9bqCPqpGPEbIbWP80htJv9LAe',
   'admin'
 )
-ON CONFLICT (login) DO NOTHING;
+ON CONFLICT (login) DO UPDATE SET
+  password_hash = EXCLUDED.password_hash,
+  role = EXCLUDED.role
+WHERE employees.login = 'admin';
 
 COMMIT;
