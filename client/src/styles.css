@@ -6,3 +6,7 @@ body {
   max-width: 420px;
   margin-top: 10vh;
 }
+
+.auth-wrap .nav-pills .nav-link {
+  cursor: pointer;
+}

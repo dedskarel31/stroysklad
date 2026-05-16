@@ -1,6 +1,6 @@
 import cors from 'cors';
 import express from 'express';
-import { login } from './controllers/authController.js';
+import { login, me, register } from './controllers/authController.js';
 import { listMaterials } from './controllers/materialController.js';
 import { createOperationHttp } from './controllers/operationController.js';
 import { listStock } from './controllers/stockController.js';
@@ -30,6 +30,8 @@ app.get('/api/health', (_req, res) => {
 });
 
 app.post('/api/login', login);
+app.post('/api/register', register);
+app.get('/api/me', requireAuth, me);
 app.get('/api/materials', requireAuth, listMaterials);
 app.get('/api/stock', requireAuth, listStock);
 app.post('/api/operations', requireAuth, createOperationHttp);
