@@ -1,6 +1,11 @@
 import axios from 'axios';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+function normalizeApiBase(raw) {
+  const base = (raw || 'http://localhost:3001').trim().replace(/\/+$/, '');
+  return base.endsWith('/api') ? base : `${base}/api`;
+}
+
+const API_BASE = normalizeApiBase(import.meta.env.VITE_API_URL);
 
 export const TOKEN_KEY = 'stroysklad_token';
 export const USER_KEY = 'stroysklad_user';
@@ -61,7 +66,28 @@ api.interceptors.response.use(
 );
 
 function extractApiError(error) {
-  return error?.response?.data?.message || error?.message || 'Ошибка запроса к серверу';
+  const status = error?.response?.status;
+  const message = error?.response?.data?.message;
+
+  if (message) return message;
+
+  if (!error?.response) {
+    return 'Не удалось связаться с сервером. Проверьте интернет и адрес API.';
+  }
+
+  if (status === 404) {
+    const path = error.config?.url || '';
+    if (path.includes('register')) {
+      return 'Регистрация на сервере недоступна. Задеплойте обновлённый backend (нужен маршрут POST /api/register).';
+    }
+    return `API не найден (${API_BASE}). Проверьте переменную VITE_API_URL — адрес должен заканчиваться на /api`;
+  }
+
+  if (status === 409) return 'Такой логин уже занят';
+  if (status === 401) return 'Неверный логин или пароль';
+  if (status >= 500) return 'Ошибка на сервере. Попробуйте позже';
+
+  return 'Не удалось выполнить запрос';
 }
 
 function saveAuthSession({ token, user }) {

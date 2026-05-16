@@ -53,86 +53,122 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="container auth-wrap">
-      <div className="card shadow-sm">
-        <div className="card-body p-4">
-          <h3 className="mb-3">{mode === 'login' ? 'Вход в систему' : 'Регистрация'}</h3>
+    <div className="auth-screen">
+      <div className="auth-screen__glow auth-screen__glow--left" aria-hidden="true" />
+      <div className="auth-screen__glow auth-screen__glow--right" aria-hidden="true" />
 
-          <ul className="nav nav-pills nav-fill mb-4">
-            <li className="nav-item">
-              <button
-                type="button"
-                className={`nav-link ${mode === 'login' ? 'active' : ''}`}
-                onClick={() => switchMode('login')}
-              >
-                Вход
-              </button>
-            </li>
-            <li className="nav-item">
-              <button
-                type="button"
-                className={`nav-link ${mode === 'register' ? 'active' : ''}`}
-                onClick={() => switchMode('register')}
-              >
-                Регистрация
-              </button>
-            </li>
-          </ul>
+      <div className="auth-card">
+        <header className="auth-card__header">
+          <div className="auth-card__logo" aria-hidden="true">
+            СС
+          </div>
+          <div>
+            <p className="auth-card__brand">СтройСклад</p>
+            <h1 className="auth-card__title">
+              {mode === 'login' ? 'Добро пожаловать' : 'Создать аккаунт'}
+            </h1>
+          </div>
+        </header>
+
+        <div className="auth-tabs" role="tablist">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mode === 'login'}
+            className={`auth-tabs__btn ${mode === 'login' ? 'auth-tabs__btn--active' : ''}`}
+            onClick={() => switchMode('login')}
+          >
+            Вход
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mode === 'register'}
+            className={`auth-tabs__btn ${mode === 'register' ? 'auth-tabs__btn--active' : ''}`}
+            onClick={() => switchMode('register')}
+          >
+            Регистрация
+          </button>
+        </div>
+
+        {mode === 'register' && (
+          <p className="auth-card__hint">
+            Новый пользователь получает роль «{ROLE_LABELS.storekeeper}». Администратор создаётся при
+            первичной настройке системы.
+          </p>
+        )}
+
+        {error && (
+          <div className="auth-alert" role="alert">
+            <span className="auth-alert__icon" aria-hidden="true">
+              !
+            </span>
+            <span>{error}</span>
+          </div>
+        )}
+
+        <form className="auth-form" onSubmit={handleSubmit} noValidate>
+          <div className="auth-field">
+            <label className="auth-field__label" htmlFor="auth-login">
+              Логин
+            </label>
+            <input
+              id="auth-login"
+              className="auth-field__input"
+              name="login"
+              value={form.login}
+              onChange={handleChange}
+              autoComplete="username"
+              placeholder="например, ivanov"
+              minLength={3}
+              maxLength={100}
+              pattern="[a-zA-Z0-9_]+"
+              title="Латиница, цифры и символ _"
+              required
+            />
+          </div>
+
+          <div className="auth-field">
+            <label className="auth-field__label" htmlFor="auth-password">
+              Пароль
+            </label>
+            <input
+              id="auth-password"
+              className="auth-field__input"
+              type="password"
+              name="password"
+              value={form.password}
+              onChange={handleChange}
+              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+              placeholder="не менее 6 символов"
+              minLength={6}
+              required
+            />
+          </div>
 
           {mode === 'register' && (
-            <p className="text-muted small mb-3">
-              Новый аккаунт получает роль «{ROLE_LABELS.storekeeper}». Администратор создаётся при
-              первичной настройке системы.
-            </p>
-          )}
-
-          {error && <div className="alert alert-danger">{error}</div>}
-
-          <form onSubmit={handleSubmit}>
-            <div className="mb-3">
-              <label className="form-label">Логин</label>
+            <div className="auth-field">
+              <label className="auth-field__label" htmlFor="auth-password-confirm">
+                Повтор пароля
+              </label>
               <input
-                className="form-control"
-                name="login"
-                value={form.login}
-                onChange={handleChange}
-                autoComplete="username"
-                minLength={3}
-                maxLength={100}
-                pattern="[a-zA-Z0-9_]+"
-                title="Латиница, цифры и символ _"
-                required
-              />
-            </div>
-            <div className="mb-3">
-              <label className="form-label">Пароль</label>
-              <input
-                className="form-control"
+                id="auth-password-confirm"
+                className="auth-field__input"
                 type="password"
-                name="password"
-                value={form.password}
+                name="passwordConfirm"
+                value={form.passwordConfirm}
                 onChange={handleChange}
-                autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                autoComplete="new-password"
+                placeholder="ещё раз"
                 minLength={6}
                 required
               />
             </div>
-            {mode === 'register' && (
-              <div className="mb-3">
-                <label className="form-label">Повтор пароля</label>
-                <input
-                  className="form-control"
-                  type="password"
-                  name="passwordConfirm"
-                  value={form.passwordConfirm}
-                  onChange={handleChange}
-                  autoComplete="new-password"
-                  minLength={6}
-                  required
-                />
-              </div>
-            )}
-            <button className="btn btn-primary w-100" type="submit" disabled={loading}>
+          )}
+
+          <button className="auth-submit" type="submit" disabled={loading}>
+            {loading ? <span className="auth-submit__spinner" aria-hidden="true" /> : null}
+            <span>
               {loading
                 ? mode === 'login'
                   ? 'Входим...'
@@ -140,9 +176,9 @@ export default function AuthPage() {
                 : mode === 'login'
                   ? 'Войти'
                   : 'Зарегистрироваться'}
-            </button>
-          </form>
-        </div>
+            </span>
+          </button>
+        </form>
       </div>
     </div>
   );
