@@ -57,33 +57,51 @@ export default function OperationPage() {
   };
 
   return (
-    <div className="container">
-      <h2 className="h4 mb-3">Новая операция</h2>
+    <>
+      <header className="page-header">
+        <div>
+          <h1 className="page-header__title">Новая операция</h1>
+          <p className="page-header__subtitle">Приход или расход материалов на складе</p>
+        </div>
+      </header>
 
       {insufficientError && (
-        <div className="alert alert-danger border-2 shadow-sm" role="alert">
-          <div className="fw-semibold mb-1">Операция отклонена</div>
-          <div>{insufficientError}</div>
+        <div className="alert alert--danger" role="alert">
+          <div>
+            <div className="alert__title">Операция отклонена</div>
+            <div>{insufficientError}</div>
+          </div>
         </div>
       )}
-      {error && <div className="alert alert-danger">{error}</div>}
-      {success && <div className="alert alert-success">{success}</div>}
+      {error && <div className="alert alert--danger">{error}</div>}
+      {success && <div className="alert alert--success">{success}</div>}
 
-      <div className="card shadow-sm">
-        <div className="card-body">
+      <section className="panel">
+        <div className="panel__body">
           <form onSubmit={handleSubmit}>
-            <div className="mb-3">
-              <label className="form-label">Тип операции</label>
-              <select className="form-select" name="type" value={form.type} onChange={handleChange}>
+            <div className="form-field">
+              <label className="form-field__label" htmlFor="op-type">
+                Тип операции
+              </label>
+              <select
+                id="op-type"
+                className="form-field__select"
+                name="type"
+                value={form.type}
+                onChange={handleChange}
+              >
                 <option value="income">Приход</option>
                 <option value="expense">Расход</option>
               </select>
             </div>
 
-            <div className="mb-3">
-              <label className="form-label">Материал</label>
+            <div className="form-field">
+              <label className="form-field__label" htmlFor="op-material">
+                Материал
+              </label>
               <select
-                className="form-select"
+                id="op-material"
+                className="form-field__select"
                 name="material_id"
                 value={form.material_id}
                 onChange={handleChange}
@@ -98,10 +116,13 @@ export default function OperationPage() {
               </select>
             </div>
 
-            <div className="mb-3">
-              <label className="form-label">Количество</label>
+            <div className="form-field">
+              <label className="form-field__label" htmlFor="op-quantity">
+                Количество
+              </label>
               <input
-                className="form-control"
+                id="op-quantity"
+                className="form-field__input"
                 type="number"
                 min="0.001"
                 step="0.001"
@@ -112,12 +133,19 @@ export default function OperationPage() {
               />
             </div>
 
-            <button className="btn btn-primary" type="submit" disabled={loading}>
-              {loading ? 'Сохранение...' : 'Добавить'}
+            <button className="btn btn--primary" type="submit" disabled={loading}>
+              {loading ? (
+                <>
+                  <span className="spinner spinner--sm" aria-hidden="true" />
+                  Сохранение...
+                </>
+              ) : (
+                'Добавить'
+              )}
             </button>
           </form>
         </div>
-      </div>
-    </div>
+      </section>
+    </>
   );
 }

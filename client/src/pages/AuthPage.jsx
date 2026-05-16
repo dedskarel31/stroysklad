@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
+import { APP_LOGO, APP_TAGLINE } from '../constants.js';
 import { getToken, login, register } from '../api.js';
 
 const ROLE_LABELS = {
@@ -60,10 +61,10 @@ export default function AuthPage() {
       <div className="auth-card">
         <header className="auth-card__header">
           <div className="auth-card__logo" aria-hidden="true">
-            СС
+            {APP_LOGO}
           </div>
           <div>
-            <p className="auth-card__brand">СтройСклад</p>
+            <p className="auth-card__brand">{APP_TAGLINE}</p>
             <h1 className="auth-card__title">
               {mode === 'login' ? 'Добро пожаловать' : 'Создать аккаунт'}
             </h1>

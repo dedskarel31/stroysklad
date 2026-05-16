@@ -1,4 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { APP_LOGO, APP_TITLE } from '../constants.js';
 import { clearToken, getUser } from '../api.js';
 
 const ROLE_LABELS = {
@@ -16,31 +17,40 @@ export default function Navbar() {
     navigate('/login');
   };
 
+  const linkClass = (path) =>
+    `app-nav__link${location.pathname === path ? ' app-nav__link--active' : ''}`;
+
   return (
-    <nav className="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
-      <div className="container">
-        <span className="navbar-brand">СтройСклад</span>
-        <div className="navbar-nav me-auto">
-          <Link className={`nav-link ${location.pathname === '/' ? 'active' : ''}`} to="/">
+    <header className="app-nav">
+      <div className="app-nav__inner">
+        <Link to="/" className="app-nav__brand">
+          <span className="app-nav__logo" aria-hidden="true">
+            {APP_LOGO}
+          </span>
+          <span className="app-nav__title">{APP_TITLE}</span>
+        </Link>
+
+        <nav className="app-nav__links" aria-label="Основное меню">
+          <Link className={linkClass('/')} to="/">
             Остатки
           </Link>
-          <Link
-            className={`nav-link ${location.pathname === '/operation' ? 'active' : ''}`}
-            to="/operation"
-          >
+          <Link className={linkClass('/operation')} to="/operation">
             Новая операция
           </Link>
+        </nav>
+
+        <div className="app-nav__right">
+          {user && (
+            <span className="app-nav__user">
+              <strong>{user.login}</strong>
+              {user.role ? ` · ${ROLE_LABELS[user.role] || user.role}` : ''}
+            </span>
+          )}
+          <button type="button" className="btn btn--ghost btn--sm" onClick={handleLogout}>
+            Выйти
+          </button>
         </div>
-        {user && (
-          <span className="navbar-text text-white-50 me-3 small">
-            {user.login}
-            {user.role && ` · ${ROLE_LABELS[user.role] || user.role}`}
-          </span>
-        )}
-        <button type="button" className="btn btn-outline-light btn-sm" onClick={handleLogout}>
-          Выйти
-        </button>
       </div>
-    </nav>
+    </header>
   );
 }

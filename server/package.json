@@ -1,7 +1,7 @@
 {
   "name": "stroysklad-server",
   "version": "1.0.0",
-  "description": "Backend API для приложения «СтройСклад» (дипломная работа)",
+  "description": "Backend API — учёт материалов на складе",
   "type": "module",
   "main": "src/index.js",
   "scripts": {

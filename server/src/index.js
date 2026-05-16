@@ -26,7 +26,7 @@ app.use(
 app.use(express.json());
 
 app.get('/api/health', (_req, res) => {
-  res.json({ ok: true, message: 'СтройСклад API работает' });
+  res.json({ ok: true, message: 'API системы учёта материалов работает' });
 });
 
 app.post('/api/login', login);
@@ -37,7 +37,7 @@ app.get('/api/stock', requireAuth, listStock);
 app.post('/api/operations', requireAuth, createOperationHttp);
 
 app.get('/', (_req, res) => {
-  res.status(200).send('StroySklad backend is running');
+  res.status(200).send('Warehouse accounting API is running');
 });
 
 async function main() {

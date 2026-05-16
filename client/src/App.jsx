@@ -31,17 +31,17 @@ function ProtectedLayout({ children }) {
 
   if (!ready) {
     return (
-      <div className="container py-5 text-center text-muted">
-        <div className="spinner-border" role="status" aria-hidden="true" />
+      <div className="app-loading">
+        <div className="spinner" role="status" aria-label="Загрузка" />
       </div>
     );
   }
 
   return (
-    <>
+    <div className="app-shell">
       <Navbar />
-      {children}
-    </>
+      <main className="app-main">{children}</main>
+    </div>
   );
 }
 

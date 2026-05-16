@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { APP_TAGLINE } from '../constants.js';
 import { fetchStock } from '../api.js';
 
 export default function Dashboard() {
@@ -24,52 +25,66 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <div className="container">
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h2 className="h4 mb-0">Текущие остатки</h2>
-        <button type="button" className="btn btn-outline-primary btn-sm" onClick={loadData}>
+    <>
+      <header className="page-header">
+        <div>
+          <h1 className="page-header__title">Текущие остатки</h1>
+          <p className="page-header__subtitle">{APP_TAGLINE}</p>
+        </div>
+        <button type="button" className="btn btn--outline btn--sm" onClick={loadData} disabled={loading}>
           Обновить
         </button>
-      </div>
+      </header>
 
-      {error && <div className="alert alert-danger">{error}</div>}
-      {loading ? (
-        <div>Загрузка...</div>
-      ) : (
-        <div className="table-responsive">
-          <table className="table table-striped align-middle">
-            <thead>
-              <tr>
-                <th>Материал</th>
-                <th>Артикул</th>
-                <th>Ед.</th>
-                <th>Минимум</th>
-                <th>Остаток</th>
-                <th>Статус</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row) => {
-                const low = Number(row.quantity) < Number(row.min_quantity);
-                return (
-                  <tr key={row.balance_id} className={low ? 'table-danger' : ''}>
-                    <td>{row.name}</td>
-                    <td>{row.article || '-'}</td>
-                    <td>{row.unit}</td>
-                    <td>{row.min_quantity}</td>
-                    <td>{row.quantity}</td>
-                    <td>
-                      <span className={`badge ${low ? 'text-bg-danger' : 'text-bg-success'}`}>
-                        {low ? 'Ниже минимума' : 'Норма'}
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
+      {error && <div className="alert alert--danger">{error}</div>}
+
+      <section className="panel panel--padded">
+        {loading ? (
+          <div className="empty-state">
+            <div className="spinner" style={{ margin: '0 auto 1rem' }} aria-hidden="true" />
+            <p className="text-muted">Загрузка остатков...</p>
+          </div>
+        ) : rows.length === 0 ? (
+          <div className="empty-state">Нет данных по остаткам</div>
+        ) : (
+          <div className="table-wrap">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Материал</th>
+                  <th>Артикул</th>
+                  <th>Ед.</th>
+                  <th>Минимум</th>
+                  <th>Остаток</th>
+                  <th>Статус</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((row) => {
+                  const low = Number(row.quantity) < Number(row.min_quantity);
+                  return (
+                    <tr
+                      key={row.balance_id}
+                      className={low ? 'data-table__row--low' : undefined}
+                    >
+                      <td>{row.name}</td>
+                      <td>{row.article || '—'}</td>
+                      <td>{row.unit}</td>
+                      <td>{row.min_quantity}</td>
+                      <td>{row.quantity}</td>
+                      <td>
+                        <span className={`badge ${low ? 'badge--danger' : 'badge--success'}`}>
+                          {low ? 'Ниже минимума' : 'Норма'}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+    </>
   );
 }
